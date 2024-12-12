@@ -135,8 +135,7 @@
       <thead>
         <tr>
           <th>מספר כיתה</th>
-          <th>תאריך התחלה</th>
-          <th>תאריך סיום</th>
+     
           <th>אחוז ביטולים מתוך סך הביטולים</th>
         </tr>
       </thead>
@@ -226,8 +225,6 @@ const topRepresentative = Object.keys(representativesCount).reduce((a, b) => rep
 // הצגת סטטיסטיקות נוספות
 document.getElementById('topReason').textContent = `הסיבה הנפוצה ביותר לביטול: ${topReason}`;
 document.getElementById('topRepresentative').textContent = `הנציג עם הכי הרבה ביטולים: ${topRepresentative}`;
-document.getElementById('uniqueReasons').textContent = `מספר סיבות ביטול ייחודיות: ${uniqueReasons}`;
-document.getElementById('totalClasses').textContent = `סך הכל כיתות שנפגעו מביטולים: ${classesAffected.size}`;
 
 // סטטיסטיקות לפי כיתה
 const classStats = cancellations.reduce((acc, curr) => {
@@ -253,8 +250,7 @@ Object.entries(classStats).forEach(([classNumber, stats]) => {
     const row = document.createElement('tr');
     row.innerHTML = `
         <td>${classNumber}</td>
-        <td>${stats.startDate.toLocaleDateString('he-IL')}</td>
-        <td>${stats.endDate.toLocaleDateString('he-IL')}</td>
+   
         <td>${((stats.count / totalCancellations) * 100).toFixed(2)}%</td>
     `;
     classDateRangeTable.appendChild(row);
