@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>סטטיסטיקות ביטולים</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    canvas {
+      margin: 20px 0;
+      max-width: 100%;
+      border: 1px solid #ccc;
+      background-color: #fafafa;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+      color: #555;
+    }
+
+    table tbody tr:nth-child(odd) {
+      background-color: #f9f9f9;
+    }
+
+    table tbody tr:nth-child(even) {
+      background-color: #ffffff;
+    }
+
+    h1, h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-top: 0;
+    }
+
+    h2 {
+      font-size: 20px;
+    }
+
+    p {
+      font-size: 16px;
+      margin: 10px 0;
+      color: #444;
+    }
+
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>סטטיסטיקות ביטולים</h1>
+
+    <!-- טבלה שמרכזת את כל הנתונים -->
+    <h2>טבלת ביטולים</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>תאריך</th>
+          <th>נציג</th>
+          <th>סיבה לביטול</th>
+          <th>כיתה</th>
+        </tr>
+      </thead>
+      <tbody id="cancellationsTable">
+        <!-- הנתונים יתמלאו כאן -->
+      </tbody>
+    </table>
+
+    <!-- גרפים -->
+    <h2>גרפים</h2>
+    <canvas id="reasonsChart"></canvas>
+    <canvas id="representativesChart"></canvas>
+    <canvas id="monthsChart"></canvas>
+    <canvas id="classDistributionChart"></canvas>
+    <canvas id="classMonthlyAverageChart"></canvas>
+    <canvas id="trendChart"></canvas>
+
+    <!-- סטטיסטיקות נוספות -->
+    <h2>סטטיסטיקות נוספות</h2>
+    <p id="topReason"></p>
+    <p id="topRepresentative"></p>
+
+    <!-- טבלה לפי כיתה -->
+    <h2>סטטיסטיקות לפי כיתה</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>מספר כיתה</th>
+          <th>תאריך התחלה</th>
+          <th>תאריך סיום</th>
+          <th>אחוז ביטולים מתוך סך התלמידים</th>
+        </tr>
+      </thead>
+      <tbody id="classDateRangeTable">
+        <!-- הנתונים יתמלאו כאן -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+// נתוני ביטולים לדוגמא
+const cancellations = [
+   { date: '01.12.2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '42077/43055' },
+    { date: '1/12/2024', reason: 'עומס אישי', exitPoint: 'ביטול בתוך חודש', representative: 'ויטל', classNumber: '42080' },
+    { date: '08.12.2024', reason: 'שינויים בלו"ז האישי', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '43056' },
+    { date: '08.12.2024', reason: 'לא מתחבר לאונליין', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '42077' },
+    { date: '4.12.2024', reason: 'לא מתחבר לאונליין', exitPoint: 'ביטול בתוך חודש', representative: 'יובל', classNumber: '42077' },
+    { date: '09.12.2024', reason: 'מתקשה להשתלב', exitPoint: 'ביטול בתוך חודשיים', representative: 'דנה', classNumber: '41009/42075' },
+    { date: '10.12.2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '42077' },
+    { date: '10/12/2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול בתוך חודש', representative: 'ויטל', classNumber: '' },
+    { date: '3/9/2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול אחרי נקודות יציאה', representative: 'אלדד', classNumber: '42069' },
+    { date: '08.09.2024', reason: 'לא מתחבר לאונליין', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '42074' },
+    { date: '12.09.2024', reason: 'עומס אישי', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '43054' },
+    { date: '17.09.2024', reason: 'שינויים בלו"ז האישי', exitPoint: 'ביטול לפני פתיחה', representative: 'דנה', classNumber: '90011' },
+    { date: '19.09.2024', reason: 'עומס אישי', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '43054' },
+    { date: '20.09.2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול בתוך חודשיים', representative: 'דנה', classNumber: '43053' },
+    { date: '01.10.2024', reason: 'יום \ שעה לא מתאימים', exitPoint: 'ביטול לפני פתיחה', representative: 'יובל', classNumber: '42080' },
+    { date: '06.10.2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול בתוך חודש', representative: 'יובל', classNumber: '43054' },
+    { date: '14.10.2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '46007' },
+    { date: '20.10.2024', reason: 'עומס אישי', exitPoint: 'ביטול בתוך חודשיים', representative: 'דנה', classNumber: '43053' },
+    { date: '27.10.2024', reason: 'אחר', exitPoint: 'ביטול לפני פתיחה', representative: 'דנה', classNumber: '42080' },
+    { date: '28.10.2024', reason: 'אחר', exitPoint: 'ביטול לפני פתיחה', representative: 'יובל', classNumber: '42077' },
+    { date: '28.10.2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול בתוך חודשיים', representative: 'יובל', classNumber: '42073' },
+    { date: '30.10.2024', reason: 'ציפה לתוכן שונה', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '43054' },
+    { date: '04.11.2024', reason: 'אחר', exitPoint: 'ביטול לפני פתיחה', representative: 'דנה', classNumber: '42077' },
+    { date: '12.11.2024', reason: 'ציפה לתוכן שונה', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '43054' },
+    { date: '20.11.2024', reason: 'מתקשה להשתלב', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '43056' },
+    { date: '25.11.2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול בתוך חודש', representative: 'יובל', classNumber: '42078' },
+    { date: '01.12.2024', reason: 'לא מתחבר לתוכן', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '42077/43055' },
+    { date: '08.12.2024', reason: 'שינויים בלו"ז האישי', exitPoint: 'ביטול בתוך חודש', representative: 'דנה', classNumber: '43056' }
+];
+
+// פונקציה לפירמוט תאריך
+const parseDate = (date) => {
+    const parts = date.includes('/') ? date.split('/') : date.split('.');
+    const [day, month, year] = parts.map(Number);
+    return new Date(year, month - 1, day);
+};
+
+// עדכון נתונים בפורמט אחיד
+cancellations.forEach(c => {
+    c.date = parseDate(c.date);
+    c.classNumber = c.classNumber || 'לא צוינה כיתה';
+});
+
+// סידור ביטולים בטבלה
+const cancellationsTable = document.getElementById('cancellationsTable');
+cancellations.forEach(cancellation => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${cancellation.date.toLocaleDateString('he-IL')}</td>
+        <td>${cancellation.representative}</td>
+        <td>${cancellation.reason}</td>
+        <td>${cancellation.classNumber}</td>
+    `;
+    cancellationsTable.appendChild(row);
+});
+
+// יצירת גרפים עם Chart.js
+const ctxReasons = document.getElementById('reasonsChart').getContext('2d');
+const reasonsCount = cancellations.reduce((acc, curr) => {
+    acc[curr.reason] = (acc[curr.reason] || 0) + 1;
+    return acc;
+}, {});
+
+new Chart(ctxReasons, {
+    type: 'bar',
+    data: {
+        labels: Object.keys(reasonsCount),
+        datasets: [{
+            label: 'מספר ביטולים לפי סיבה',
+            data: Object.values(reasonsCount),
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    }
+});
+
+const ctxRepresentatives = document.getElementById('representativesChart').getContext('2d');
+const representativesCount = cancellations.reduce((acc, curr) => {
+    acc[curr.representative] = (acc[curr.representative] || 0) + 1;
+    return acc;
+}, {});
+
+const representativeColors = Object.keys(representativesCount).map((_, i) => `hsl(${i * 360 / Object.keys(representativesCount).length}, 70%, 60%)`);
+
+new Chart(ctxRepresentatives, {
+    type: 'pie',
+    data: {
+        labels: Object.keys(representativesCount),
+        datasets: [{
+            label: 'מספר ביטולים לפי נציג',
+            data: Object.values(representativesCount),
+            backgroundColor: representativeColors,
+            borderColor: representativeColors.map(color => color.replace('70%', '50%')),
+            borderWidth: 1
+        }]
+    }
+});
+
+  </script>
+</body>
+</html>
